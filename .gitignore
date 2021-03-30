@@ -1,0 +1,10 @@
+.idea/
+node_modules/
+docs/
+yarn-error.log
+package-lock.json
+.DS_Store
+chaincode_new.zip
+
+# Internal files
+/chaincode/

@@ -1,0 +1,38 @@
+{
+  "name": "part-chain-smart-contract",
+  "version": "1.0.0",
+  "description": "PartChain Hyperledger smart contract",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "fabric-chaincode-node start",
+    "build": "webpack",
+    "build:dev": "webpack --output-path=./chaincode/development/",
+    "build:int": "webpack --output-path=./chaincode/integration/",
+    "watch": "webpack --mode=development --watch",
+    "tests": "npx jest",
+    "docs": "./node_modules/.bin/typedoc --out docs ./src"
+  },
+  "repository": {
+    "type": "git",
+    "url": "TODO"
+  },
+  "license": "Apache 2.0",
+  "dependencies": {
+    "class-validator": "^0.12.2",
+    "fabric-contract-api": "^2.2.1",
+    "fabric-shim": "^2.2.1",
+    "log4js": "^4.5.1",
+    "object-hash": "^2.1.1"
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.16",
+    "jest": "^24.8.0",
+    "ts-jest": "^26.5.3",
+    "ts-loader": "^6.0.4",
+    "typedoc": "^0.15.0",
+    "typescript": "^3.9.9",
+    "webpack": "^4.46.0",
+    "webpack-cli": "^3.3.12",
+    "webpack-node-externals": "^1.7.2"
+  }
+}
