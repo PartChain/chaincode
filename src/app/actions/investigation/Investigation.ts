@@ -180,9 +180,9 @@ export const closeInvestigation = async (tx: Transaction, investigationID: strin
     Logger.info(`Called closeInvestigation`);
     // get investigation details
     const mspID = tx.msp;
-    // 1. get the investigation public details
+    // get the investigation public details
     const assetPublicDetails = await getPublicInvestigation(tx, investigationID, mspID);
-    // 2. check if the investigation is present 
+    // check if the investigation is present 
     if (assetPublicDetails.status === ResponseStatus.NOT_FOUND) {
         return assetPublicDetails;
     }
@@ -524,19 +524,19 @@ export const requestAssetForInvestigation = async (tx: Transaction) => {
     const privateData = await tx.getTransientData();
     const { investigationID, serialNumberCustomer, targetOrg } = privateData;
     const mspID = tx.msp;
-    //1. check permission
+    // check permission
     const validationResponse = await validateAssetSharingInInvestigation(tx, investigationID, serialNumberCustomer, targetOrg, mspID, 'REQUEST');
     if (validationResponse.status != ResponseStatus.SUCCESS) {
         return validationResponse;
     }
-    //6. encrypt the serialNumberCustomer
+    // encrypt the serialNumberCustomer
     const encryptedKeyResponse = await encryptDataForInvestigation(tx, investigationID, serialNumberCustomer, 'ASSET', mspID);
     // check the request status
     if (encryptedKeyResponse.status != ResponseStatus.SUCCESS) {
         return encryptedKeyResponse
     }
     const encryptedKey = encryptedKeyResponse.data;
-    //7. encrypt the MSP
+    // encrypt the MSP
     const encryptedMspIDResponse = await encryptDataForInvestigation(tx, investigationID, mspID, 'MSP', mspID);
     // check the request status
     if (encryptedMspIDResponse.status != ResponseStatus.SUCCESS) {
@@ -544,7 +544,7 @@ export const requestAssetForInvestigation = async (tx: Transaction) => {
     }
     const encryptedMspID = encryptedMspIDResponse.data;
 
-    // 5. Emit the event {investigationID,encrypted serialNumberCustomer, encrypted requestingOrg MSP, targetOrg } 
+    // Emit the event {investigationID,encrypted serialNumberCustomer, encrypted requestingOrg MSP, targetOrg } 
     let requestInvestigationEvent = {
         investigationID,
         key: encryptedKey,
@@ -552,7 +552,7 @@ export const requestAssetForInvestigation = async (tx: Transaction) => {
         mspID: targetOrg,
     }
     Logger.info(`requestAssetForInvestigation: Emitting requestInvestigationEvent event with data ${JSON.stringify(requestInvestigationEvent)}`);
-    // 6. Emitting event
+    // Emitting event
     await tx.emitEvent("RequestInvestigationEvent", Buffer.from(JSON.stringify(requestInvestigationEvent)));
     return await returnFunction(JSON.stringify(privateData), ResponseStatus.SUCCESS)
 }
@@ -575,7 +575,7 @@ export const exchangeAssetForInvestigation = async (tx: Transaction) => {
 
     if (assetValidationResponse.status === ResponseStatus.SUCCESS) {
         const serialNumberCustomer = assetInfoObject.serialNumberCustomer;
-        // 1 validate the investigation and asset
+        // validate the investigation and asset
         const validationResponse = await validateAssetSharingInInvestigation(tx, investigationID, serialNumberCustomer, targetOrg, mspID, 'EXCHANGE');
         if (validationResponse.status != ResponseStatus.SUCCESS) {
             return validationResponse
@@ -604,7 +604,7 @@ export const exchangeAssetForInvestigation = async (tx: Transaction) => {
         assetExchangeObject.customFields = assetInfoObject.customFields;
 
         Logger.info(`exchangeAssetForInvestigation: assetExchangeObject = ${JSON.stringify(assetExchangeObject)}`);
-        //2. write data to target org´s PDC
+        // write data to target org´s PDC
 
         await tx.putPrivateState(
             collectionName,
@@ -612,16 +612,16 @@ export const exchangeAssetForInvestigation = async (tx: Transaction) => {
             Buffer.from(JSON.stringify(assetExchangeObject))
         );
 
-        //3. encrypt the serialNumberCustomer
+        // encrypt the serialNumberCustomer
         const encryptedKeyResponse = await encryptDataForInvestigation(tx, investigationID, componentKey, 'ASSET', targetOrg);
-        //4. check the request status
+        // check the request status
         if (encryptedKeyResponse.status != ResponseStatus.SUCCESS) {
             return encryptedKeyResponse
         }
         const encryptedKey = encryptedKeyResponse.data;
-        //5. encrypt the MSP
+        // encrypt the MSP
         const encryptedMspIDResponse = await encryptDataForInvestigation(tx, investigationID, mspID, 'MSP', targetOrg);
-        //6. check the request status
+        // check the request status
         if (encryptedMspIDResponse.status != ResponseStatus.SUCCESS) {
             return encryptedMspIDResponse
         }
@@ -633,7 +633,7 @@ export const exchangeAssetForInvestigation = async (tx: Transaction) => {
             mspID: targetOrg,
         }
         Logger.info(`exchangeAssetForInvestigation: Emitting exchangeInvestigationEvent event with data ${exchangeInvestigationEvent}`);
-        //7. emit event
+        // emit event
         await tx.emitEvent(
             "ExchangeInvestigationEvent",
             Buffer.from(JSON.stringify(exchangeInvestigationEvent))
@@ -665,24 +665,24 @@ export const validateAssetSharingInInvestigation = async (tx: Transaction, inves
         return await returnFunction(` Request/Exchange assets for same organisation ${targetOrg}`, ResponseStatus.PERMISSION_DENIED);
     }
     if (type == 'REQUEST') {
-        // 1. get the investigation public details
+        // get the investigation public details
         const assetPublicDetails = await getPublicInvestigation(tx, investigationID, mspID);
-        // 2. check if the investigation is present 
+        // check if the investigation is present 
         if (assetPublicDetails.status === ResponseStatus.NOT_FOUND) {
             return assetPublicDetails
         }
         const assetDetails = JSON.parse(assetPublicDetails.data);
         Logger.info(`validateAssetSharingInInvestigation: public asset details = ${JSON.stringify(assetDetails)}`)
-        // 3. check if the status of the investigation is ACTIVE
+        // check if the status of the investigation is ACTIVE
         if (assetDetails.status != InvestigationStatus.ACTIVE) {
             return await returnFunction(`Investigation status is not ${InvestigationStatus.ACTIVE}`, ResponseStatus.PERMISSION_DENIED);
         }
-        // 4. check if the target org is part of the investigation
+        // check if the target org is part of the investigation
         const checkTargetOrg = Object.keys(assetDetails.participatingOrgs).filter((mspID) => { return mspID === targetOrg; });
         if (checkTargetOrg.length == 0) {
             return await returnFunction(` ${targetOrg} is not part of investigation ${investigationID}`, ResponseStatus.PERMISSION_DENIED);
         }
-        // 5. check if the requested serialNumberCustomer is part of the component List of the target org in the investigation
+        // check if the requested serialNumberCustomer is part of the component List of the target org in the investigation
         const checkSerialNumberCustomer = assetDetails["participatingOrgs"][targetOrg]["componentsSerialNumbers"].filter((requestingSerialNumberCustomer: string) => {
             return requestingSerialNumberCustomer === serialNumberCustomer;
         })
@@ -691,24 +691,24 @@ export const validateAssetSharingInInvestigation = async (tx: Transaction, inves
         }
     }
     else if (type == 'EXCHANGE') {
-        // 1. get the investigation public details
+        // get the investigation public details
         const assetPublicDetails = await getPublicInvestigation(tx, investigationID, targetOrg);
-        // 2. check if the investigation is present 
+        // check if the investigation is present 
         if (assetPublicDetails.status === ResponseStatus.NOT_FOUND) {
             return assetPublicDetails
         }
         const assetDetails = JSON.parse(assetPublicDetails.data);
         Logger.info(`validateAssetSharingInInvestigation: public asset details = ${JSON.stringify(assetDetails)}`);
-        // 3. check if the status of the investigation is ACTIVE
+        // check if the status of the investigation is ACTIVE
         if (assetDetails.status != InvestigationStatus.ACTIVE) {
             return await returnFunction(`Investigation status is not ${InvestigationStatus.ACTIVE}`, ResponseStatus.PERMISSION_DENIED);
         }
-        // 4. check if the target org is part of the investigation
+        // check if the target org is part of the investigation
         const checkTargetOrg = Object.keys(assetDetails.participatingOrgs).filter((mspID) => { return mspID === targetOrg; });
         if (checkTargetOrg.length == 0) {
             return await returnFunction(` ${targetOrg} is not part of investigation ${investigationID}`, ResponseStatus.PERMISSION_DENIED);
         }
-        // 5. check if the requested serialNumberCustomer is part of the component List of the  org in the investigation
+        // check if the requested serialNumberCustomer is part of the component List of the  org in the investigation
         const checkSerialNumberCustomer = assetDetails["participatingOrgs"][mspID]["componentsSerialNumbers"].filter((requestingSerialNumberCustomer: string) => {
             return requestingSerialNumberCustomer === serialNumberCustomer;
         })
@@ -716,7 +716,7 @@ export const validateAssetSharingInInvestigation = async (tx: Transaction, inves
             return await returnFunction(` ${serialNumberCustomer} is not part of investigation ${investigationID}`, ResponseStatus.PERMISSION_DENIED);
         }
     }
-    // 6. return success
+    // return success
     return await returnFunction(`success `, ResponseStatus.SUCCESS)
 
 }
@@ -730,7 +730,7 @@ export const validateAssetSharingInInvestigation = async (tx: Transaction, inves
 
 export const decryptDataForInvestigation = async (tx: Transaction, investigationID: string, data: string, type: string, mspID: string) => {
     Logger.info(`Called decryptDataForInvestigation`);
-    // 1. fetch the private details
+    // fetch the private details
     let collectionName = await tx.getOrgPrivateCollection(mspID);
     let storedInvestigation = await tx.getPrivateState(
         collectionName,
@@ -750,12 +750,12 @@ export const decryptDataForInvestigation = async (tx: Transaction, investigation
     Logger.info(`decryptDataForInvestigation: Investigation with key "${investigationID}" found in collection: ${collectionName}`);
 
     switch (type) {
-        // 2. decrypt MSPID
+        // decrypt MSPID
         case 'MSP': {
             const result = await decryptData(secret1, iv, data);
             return await returnFunction(result, ResponseStatus.SUCCESS)
         }
-        // 3. decrypt the serialNumberCustomer
+        // decrypt the serialNumberCustomer
         case 'ASSET': {
             const result = await decryptData(secret2, iv, data);
             return await returnFunction(result, ResponseStatus.SUCCESS)
@@ -778,7 +778,7 @@ export const decryptDataForInvestigation = async (tx: Transaction, investigation
 export const encryptDataForInvestigation = async (tx: Transaction, investigationID: string, data: string, type: string, mspID: string) => {
     Logger.info(`Called encryptDataForInvestigation`);
 
-    // 1. fetch the private details
+    // fetch the private details
     let collectionName = await tx.getOrgPrivateCollection(mspID);
     let storedInvestigation = await tx.getPrivateState(
         collectionName,
@@ -805,12 +805,12 @@ export const encryptDataForInvestigation = async (tx: Transaction, investigation
     Logger.info(`encryptDataForInvestigation: Investigation with key "${investigationID}" found in collection: ${collectionName}`);
 
     switch (type) {
-        // 2. encrypt MSPID
+        // encrypt MSPID
         case 'MSP': {
             const result = await encryptData(secret1, iv, data);
             return await returnFunction(result, ResponseStatus.SUCCESS)
         }
-        // 3. encrypt the serialNumberCustomer
+        // encrypt the serialNumberCustomer
         case 'ASSET': {
             const result = await encryptData(secret2, iv, data);
             return await returnFunction(result, ResponseStatus.SUCCESS)

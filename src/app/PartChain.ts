@@ -366,7 +366,7 @@ export default class PartChain {
    */
 
   async exchangeAssetInfo(tx: Transaction) {
-    Logger.info(`--- exchangeAssetInfo: begin ---`);
+    Logger.info(`Called exchangeAssetInfo`);
     try {
       const payload = await tx.getTransientData();
       Logger.info(`exchangeAssetInfo:TransientData = ${JSON.stringify(payload)}`);
