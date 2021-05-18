@@ -54,7 +54,7 @@ export const createInvestigation = async (tx: Transaction) => {
         let validationResponse = await validateCreateInvestigation(privateData);
         if (validationResponse === true) {
             // required parameters are investigationID, message, secret1, secret2, iv and type
-            const { investigationID, message, secret1, secret2, iv, type } = privateData;
+            const { investigationID, title,description, secret1, secret2, iv, type } = privateData;
             const creator = tx.msp;
             const timestamp = await getCurrentTimestamp();
             Logger.info(`createInvestigation: creator = ${creator}`);
@@ -91,7 +91,18 @@ export const createInvestigation = async (tx: Transaction) => {
             Logger.info(`createInvestigation:  participatingOrg = ${JSON.stringify(participatingOrg)}`);
             investigationPublic.participatingOrgs[`${participatingOrg.mspID}`] = participatingOrg;
             investigationPublic.status = InvestigationStatus.ACTIVE;
-            investigationPublic.message = message;
+            investigationPublic.timestamp = timestamp;
+            investigationPublic.timestampClose = "";
+            investigationPublic.description = (await encryptData(
+                secret1,
+                iv,
+                description
+            )) as string;
+            investigationPublic.title = (await encryptData(
+                secret1,
+                iv,
+                title
+            )) as string;
             investigationPublic.type = type;
             Logger.info(`createInvestigationPublic: private data ${JSON.stringify(investigationPublic)}`);
             // write the data to public ledger
@@ -163,6 +174,8 @@ export const getPublicInvestigation = async (tx: Transaction, investigationID: s
         result.participatingOrgs
     );
     result.creator = await decryptData(secret1, iv, result.creator);
+    result.title = await decryptData(secret1, iv, result.title);
+    result.description = await decryptData(secret1, iv, result.description);
     // return the decrypted data
     return await returnFunction(JSON.stringify(result), ResponseStatus.SUCCESS)
 };
@@ -181,24 +194,66 @@ export const closeInvestigation = async (tx: Transaction, investigationID: strin
     // get investigation details
     const mspID = tx.msp;
     // get the investigation public details
-    const assetPublicDetails = await getPublicInvestigation(tx, investigationID, mspID);
-    // check if the investigation is present 
-    if (assetPublicDetails.status === ResponseStatus.NOT_FOUND) {
-        return assetPublicDetails;
+
+    let publicInvestigationDetails = await tx.getPublicState(investigationID);
+    Logger.info(`closeInvestigation: publicInvestigationDetails = ${publicInvestigationDetails} , publicInvestigationDetails length = ${publicInvestigationDetails.length}`);
+    if (publicInvestigationDetails.length == 0) {
+        Logger.info(`closeInvestigation: Investigation with key "${investigationID}" not found.`);
+        // Return response
+        const response = await returnFunction(`Investigation with key ${investigationID} not found.`, ResponseStatus.NOT_FOUND);
+        Logger.info(`closeInvestigation: response =  ${JSON.stringify(response)}`);
+        return response;
     }
-    const assetDetails = JSON.parse(assetPublicDetails.data);
-    Logger.info(`closeInvestigation: public asset details = ${JSON.stringify(assetDetails)}`);
-    if (mspID != assetDetails.creator && assetDetails.status != InvestigationStatus.ACTIVE) {
-        return await returnFunction(`Investigation with key ${investigationID} is not ACTIVE or Org ${mspID} is not the creator.`, ResponseStatus.PERMISSION_DENIED);
+    publicInvestigationDetails = JSON.parse(publicInvestigationDetails.toString("utf8"));
+
+    // get Private investigation details of the investigation
+
+    let collectionName = await tx.getOrgPrivateCollection(mspID);
+    let privateInvestigationDetails = await tx.getPrivateState(
+        collectionName,
+        investigationID
+    );
+
+    Logger.info(`closeInvestigation: privateInvestigationDetails = ${privateInvestigationDetails} , privateInvestigationDetails length = ${privateInvestigationDetails.length}`);
+    if (privateInvestigationDetails.length == 0) {
+        Logger.info(`closeInvestigation: Private Investigation with key "${investigationID}" not found.`);
+        // Return response
+        const response = await returnFunction(`Private Investigation with key ${investigationID} not found.`, ResponseStatus.NOT_FOUND);
+        Logger.info(`closeInvestigation: response =  ${JSON.stringify(response)}`);
+        return response;
+    }
+
+    privateInvestigationDetails = JSON.parse(privateInvestigationDetails.toString("utf8"));
+    Logger.info(`closeInvestigation: Investigation with key "${investigationID}" found in collection: ${collectionName}`);
+    const secret1 = privateInvestigationDetails.secret1;
+    const iv = privateInvestigationDetails.iv;
+
+    // decrypt the creator
+    const creator =  await decryptData(secret1, iv, publicInvestigationDetails.creator);
+    // verify if the creator is same as the invoker 
+
+    if (mspID != creator && publicInvestigationDetails.status == InvestigationStatus.COMPLETE) {
+        Logger.error(`closeInvestigation:  Investigation with key ${investigationID} is already COMPLETE or Org ${mspID} is not the creator.`)
+        return await returnFunction(`Investigation with key ${investigationID} is already COMPLETE or Org ${mspID} is not the creator.`, ResponseStatus.PERMISSION_DENIED);
     }
     // complete investigation
-    assetDetails.status = InvestigationStatus.COMPLETE;
+
+    const timestamp = await getCurrentTimestamp();
+    publicInvestigationDetails.status = InvestigationStatus.COMPLETE;
+    publicInvestigationDetails.timestampClose = timestamp
     // write the data to public ledger
     await tx.putPublicState(
         investigationID,
-        Buffer.from(JSON.stringify(assetDetails))
+        Buffer.from(JSON.stringify(publicInvestigationDetails))
     );
-    return await returnFunction(JSON.stringify(assetDetails), ResponseStatus.SUCCESS);
+    // Getting the public investigation details
+
+    const currentInvestigationData = await getPublicInvestigation(tx, investigationID, mspID);
+    Logger.info(`closeInvestigation:  Investigation details for return = ${JSON.stringify(currentInvestigationData.data)}`)
+    let investigationReturnData = JSON.parse(currentInvestigationData.data)
+    investigationReturnData.status = InvestigationStatus.COMPLETE;
+    investigationReturnData.timestampClose = publicInvestigationDetails.timestampClose;
+    return await returnFunction(JSON.stringify(investigationReturnData), ResponseStatus.SUCCESS);
 
 }
 

@@ -930,7 +930,7 @@ export default class PartChain {
         investigationID
       );
       const { status, data } = result;
-      return Response.successObject(JSON.parse(JSON.stringify([data])), status);
+      return Response.successObject(JSON.parse(data), status);
     } catch (error) {
       Logger.error(`closeInvestigationDetails: error = ${JSON.stringify(error)}`);
       return Response.errorObject(

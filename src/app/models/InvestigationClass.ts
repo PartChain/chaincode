@@ -1,6 +1,3 @@
-
-
-
 /*
  * Copyright 2021 The PartChain Authors. All Rights Reserved.
  *
@@ -17,8 +14,7 @@
  * limitations under the License.
  */
 
-import {InvestigationModel,ParticipatingOrgsModel} from './InvestigationModel'
-
+import { InvestigationModel, ParticipatingOrgsModel } from "./InvestigationModel";
 
 /**
  * Investigation class
@@ -26,18 +22,21 @@ import {InvestigationModel,ParticipatingOrgsModel} from './InvestigationModel'
  * @export InvestigationPublicClass
  */
 
-export  class InvestigationPublicClass implements InvestigationModel {
-    investigationID: string
-    entities: string[];
-    participatingOrgs:  { [key: string]: Object };
-    creator: string;
-    status: string;
-    message: string
-    assetsUnderInvestigation: Object;
-    type:string
-    constructor(){
-        this.entities = []
-    }   
+export class InvestigationPublicClass implements InvestigationModel {
+	investigationID: string;
+	entities: string[];
+	participatingOrgs: { [key: string]: Object };
+	creator: string;
+	status: string;
+	description: string;
+	title: string;
+	assetsUnderInvestigation: Object;
+	type: string;
+	timestamp: string;
+	timestampClose: string;
+	constructor() {
+		this.entities = [];
+	}
 }
 /**
  * Investigation class
@@ -45,16 +44,15 @@ export  class InvestigationPublicClass implements InvestigationModel {
  * @export InvestigationPrivateClass
  */
 
-
-export class InvestigationPrivateClass{
-    investigationID: string
-    secret1: string
-    secret2: string
-    type:string
-    iv:string
-    docType:string
+export class InvestigationPrivateClass {
+	investigationID: string;
+	secret1: string;
+	secret2: string;
+	type: string;
+	iv: string;
+	docType: string;
 }
- 
+
 /**
  *
  *
@@ -63,11 +61,11 @@ export class InvestigationPrivateClass{
  * @implements {ParticipatingOrgsModel}
  */
 export class ParticipatingOrgsClass implements ParticipatingOrgsModel {
-  mspID: string;
-  status: string;
-  timestamp: string
-  componentsSerialNumbers: string[]
-  constructor(){
-      this.componentsSerialNumbers = []
-  }
+	mspID: string;
+	status: string;
+	timestamp: string;
+	componentsSerialNumbers: string[];
+	constructor() {
+		this.componentsSerialNumbers = [];
+	}
 }

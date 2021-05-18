@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2021 The PartChain Authors. All Rights Reserved.
  *
@@ -21,36 +20,32 @@
  * @export AssetClassValidation
  */
 
-import {Length} from "class-validator";
+import { Length } from "class-validator";
 
 export default class AssetClassValidation {
-
-    @Length(0, 100)
-    manufacturer: string;
-    @Length(0, 100)
-    productionCountryCodeManufacturer: string;
-    @Length(0, 100)
-    partNameManufacturer: string;
-    @Length(0, 100)
-    partNumberManufacturer: string;
-    @Length(0, 100)
-    partNumberCustomer?: string;
-    @Length(0, 500)
-    serialNumberManufacturer:string
-    @Length(0, 500)
-    serialNumberCustomer: string;
-    @Length(0, 100)
-    qualityStatus: string;
-    @Length(0, 100)
-    status: string;
-    @Length(0, 100)
-    productionDateGmt: string;
-    @Length(0, 100)
-    serialNumberType: string;
- 
+	@Length(0, 100)
+	manufacturer: string;
+	@Length(0, 100)
+	productionCountryCodeManufacturer: string;
+	@Length(0, 100)
+	partNameManufacturer: string;
+	@Length(0, 100)
+	partNumberManufacturer: string;
+	@Length(0, 100)
+	partNumberCustomer?: string;
+	@Length(0, 500)
+	serialNumberManufacturer: string;
+	@Length(0, 500)
+	serialNumberCustomer: string;
+	@Length(0, 100)
+	qualityStatus: string;
+	@Length(0, 100)
+	status: string;
+	@Length(0, 100)
+	productionDateGmt: string;
+	@Length(0, 100)
+	serialNumberType: string;
 }
-
-
 
 /**
  * Exchange Class
@@ -59,68 +54,66 @@ export default class AssetClassValidation {
  */
 
 export class ExchangeClass {
-
-    @Length(0, 100)
-    manufacturer: string;
-    @Length(0, 100)
-    productionCountryCodeManufacturer: string;
-    @Length(0, 100)
-    partNameManufacturer: string;
-    @Length(0, 100)
-    partNumberManufacturer: string;
-    @Length(0, 100)
-    partNumberCustomer?: string;
-    @Length(0, 500)
-    serialNumberManufacturer: string;
-    @Length(0, 500)
-    serialNumberCustomer?: string;
-    @Length(0, 100)
-    qualityStatus: string;
-    @Length(0, 100)
-    serialNumberType: string;
-    @Length(0, 100)
-    status: string;
-    @Length(0, 100)
-    productionDateGmt: string;
+	@Length(0, 100)
+	manufacturer: string;
+	@Length(0, 100)
+	productionCountryCodeManufacturer: string;
+	@Length(0, 100)
+	partNameManufacturer: string;
+	@Length(0, 100)
+	partNumberManufacturer: string;
+	@Length(0, 100)
+	partNumberCustomer?: string;
+	@Length(0, 500)
+	serialNumberManufacturer: string;
+	@Length(0, 500)
+	serialNumberCustomer?: string;
+	@Length(0, 100)
+	qualityStatus: string;
+	@Length(0, 100)
+	serialNumberType: string;
+	@Length(0, 100)
+	status: string;
+	@Length(0, 100)
+	productionDateGmt: string;
 }
 
-
 /**
- * 
+ *
  * @class InvestigationClass
  * @export InvestigationClass
  */
 
 export class InvestigationClass {
-    @Length(0, 100)
-    message: string;
-    @Length(0, 100)
-    secret1: string;
-    @Length(0, 100)
-    secret2: string;
-    @Length(0, 100)
-    type: string;
-    @Length(0, 100)
-    iv: string;
-    @Length(0, 100)
-    investigationID:string
+	@Length(0, 100)
+	description: string;
+	@Length(0, 100)
+	title: string;
+	@Length(0, 100)
+	secret1: string;
+	@Length(0, 100)
+	secret2: string;
+	@Length(0, 100)
+	type: string;
+	@Length(0, 100)
+	iv: string;
+	@Length(0, 100)
+	investigationID: string;
 }
 
 /**
- * 
+ *
  * @class AddOrgToInvestigationClass
  * @export AddOrgToInvestigationClass
  */
 
 export class AddOrgToInvestigationClass {
-    @Length(0, 100)
-    investigationID: string;
-    @Length(0, 100)
-    secret1: string;
-    @Length(0, 100)
-    targetOrg: string;
-    @Length(0, 100)
-    iv: string;
+	@Length(0, 100)
+	investigationID: string;
+	@Length(0, 100)
+	secret1: string;
+	@Length(0, 100)
+	targetOrg: string;
+	@Length(0, 100)
+	iv: string;
 }
-
-
